@@ -34,7 +34,7 @@ from __future__ import annotations
 import warnings
 from typing import Any
 
-from phx_structs.blocks import read_repeating_blocks
+from phx_structs.blocks import read_assembly_construction_detail
 from phx_structs.sibling_import import ensure_phpp_tool_importable
 
 ensure_phpp_tool_importable()
@@ -118,7 +118,7 @@ def _read_assemblies(workbook_path: str, field_map_path: str) -> list[dict[str, 
         if real_name is None:
             return []
         ws_pair = (wb_vals[real_name], wb_fmls[real_name])
-        return read_repeating_blocks(ws_pair, constructor, skip_formulas=False)
+        return read_assembly_construction_detail(ws_pair, constructor, skip_formulas=False)
     finally:
         wb_vals.close()
         wb_fmls.close()

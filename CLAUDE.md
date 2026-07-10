@@ -19,7 +19,9 @@ Filled PHPP (.xlsx)  →  read (via PHX_pyxl) + enumerate R-Values assemblies (n
 
 PHX_structs does not read or write PHPP cell values on its own — it imports PHX_pyxl's `map_parser.py`/`locators.py`/`reader.py` directly from the sibling repo (same pattern `phpp-shape-sync` uses for `map_parser.py`), because those modules are pure Python with no Excel dependency. `COMPONENTS`, `WINDOWS`, and `AREAS` are read via PHX_pyxl's existing `read_phpp()` unmodified.
 
-What's missing from PHX_pyxl/PHX_xlwg and added here: neither repo's `reader.py` can enumerate a *repeating* header block — every existing addressing strategy (see `locators.py`'s six strategies) resolves at most one or two anchor rows via `find_row_in_col`, which itself returns only the first match. PHPP's R-Values sheet, however, repeats `"Description of building assembly"` down a single column once per assembly (confirmed: rows 7, 28, 49, 70... in a real sample workbook, each block carrying its own `display_name` and PHPP-generated `id`). This repo adds that missing enumeration as new code — `find_all_rows_in_col()` and `read_repeating_blocks()` — reusing PHX_pyxl's existing `find_row_in_col`/`resolve_row_offset` primitives rather than duplicating them. **Nothing in PHX_pyxl or PHX_xlwg is modified** — the field map's existing `UVALUES.constructor` section spec is read as-is; no new markdown grammar was needed.
+What's missing from PHX_pyxl/PHX_xlwg and added here: neither repo's `reader.py` can enumerate a *repeating* header block — every existing addressing strategy (see `locators.py`'s six strategies) resolves at most one or two anchor rows via `find_row_in_col`, which itself returns only the first match. PHPP's R-Values sheet, however, repeats `"Description of building assembly"` down a single column once per assembly (confirmed: rows 7, 28, 49, 70... in a real sample workbook, each block carrying its own `display_name` and PHPP-generated `id`). This repo adds that missing enumeration as new code — `find_all_rows_in_col()`, `read_repeating_blocks()` (id/display_name only), and `read_assembly_construction_detail()` (full R-value/per-layer detail, layered on top of `read_repeating_blocks()`) — reusing PHX_pyxl's existing `find_row_in_col`/`resolve_row_offset` primitives rather than duplicating them. **Nothing in PHX_pyxl or PHX_xlwg is modified** — the field map's existing `UVALUES.constructor` section spec is read as-is; no new markdown grammar was needed.
+
+`read_assembly_construction_detail()` also had to work around a real bug in that section spec: every declared `*_row_offset` (`name_row_offset`, `rsi_row_offset`, `rse_row_offset`, `first_layer_row_offset`, `last_layer_row_offset`, `result_val_row_offset`) is off by exactly one row — a single systematic fencepost error, confirmed against multiple independent real assembly blocks in both the IP and SI field maps/workbooks, not per-field drift. The function applies `actual_offset = declared_offset - 1` uniformly; it does not touch the field map itself (see Constraints).
 
 This is intentionally out of scope for phpp-shape-sync (which only maps upstream shape JSON to local field-map markdown, and never opens a workbook to read data values) and out of scope for PHX_pyxl/PHX_xlwg (whose job is reading/writing a single building record, not cross-worksheet identity resolution).
 
@@ -36,12 +38,12 @@ PHX_pyxl/src/phpp_tool/{map_parser,locators,reader}.py   (imported directly, sib
         ↓
    sibling_import.py     (adds PHX_pyxl/src to sys.path on demand)
         ↓
-   blocks.py             (NEW: find_all_rows_in_col + read_repeating_blocks — R-Values assembly enumeration)
+   blocks.py             (NEW: find_all_rows_in_col + read_repeating_blocks + read_assembly_construction_detail)
         ↓
  ┌──────┴──────┐
- read_phpp()   read_repeating_blocks()   (Components/Windows/Areas)   (Assemblies)
+ read_phpp()   read_assembly_construction_detail()   (Components/Windows/Areas/HVAC)   (Assemblies incl. R-values/layers)
  └──────┬──────┘
-     crossref.py          (build id-keyed indexes, resolve "<id>-<description>" references, track unresolved)
+     crossref.py          (build id-keyed indexes, resolve id-string / ordinal references, track unresolved)
         ↓
      cli.py                (Click CLI: `build`)
 ```
@@ -93,3 +95,4 @@ phpp-struct-ref build Data/Example_IP.xlsx --phpp-version EN_10_6_IP -o crossref
 - **Never silently drop an unresolved reference** — any `frame_id`/`glazing_id`/`assembly_id`/`unit_selected`/`vent_unit_assigned`/`duct_assign_N` that doesn't resolve against its target index/list is recorded in the output's `unresolved` section for human review, not dropped.
 - **Don't invent cross-references the data doesn't have** — `AREAS.thermal_bridge_rows` has no id-style link to any other worksheet; resist the temptation to force a join against `surface_rows.group_number` just because both fields share the same `"<code>-<label>"` text shape. Confirmed the two use disjoint code families in a real workbook — parse and group by category, don't resolve as a reference.
 - **Two distinct resolution primitives, don't conflate them** — `resolve_reference()` (id-string split) and `resolve_ordinal()` (1-based sibling-list position) solve different problems; `ADDNL_VENT` needs both in the same worksheet (`units[].unit_selected` is id-string, `rooms[].vent_unit_assigned`/`ducts[].duct_assign_N` are ordinal). HP/Boiler worksheets are genuinely empty stubs in the field map — nothing to associate there yet.
+- **A declared offset being "wrong" doesn't mean guess a replacement — verify against a real, populated workbook first**, and check whether the error is systematic (as `UVALUES.constructor`'s uniform off-by-one turned out to be) before writing per-field special cases. `interior_insulation`/`u_val_supplement`'s row position in `read_assembly_construction_detail()` is still an unconfirmed positional hypothesis (no sample assembly had them set) — don't treat it as verified fact if it ever needs to be trusted for something load-bearing.

@@ -4,7 +4,7 @@ import warnings
 import openpyxl
 import pytest
 
-from phx_structs.blocks import find_all_rows_in_col, read_repeating_blocks
+from phx_structs.blocks import find_all_rows_in_col, read_assembly_construction_detail, read_repeating_blocks
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -136,3 +136,132 @@ def test_no_header_occurrences_returns_empty_list(tmp_path):
     finally:
         wb_vals.close()
         wb_fmls.close()
+
+
+# --- read_assembly_construction_detail: full R-value/layer resolution ---
+
+_CONSTRUCTOR_SEC_SPEC = {
+    "header_locator": {"col": "L", "string": HEADER},
+    "items": {
+        "phpp_id_num_col_offset": 5,
+        "name_row_offset": 2,
+        "rsi_row_offset": 4,
+        "rse_row_offset": 5,
+        "first_layer_row_offset": 7,
+        "last_layer_row_offset": 14,
+        "result_val_row_offset": 19,
+        "result_val_col": "R",
+    },
+    "column_fields": {
+        "display_name": {"column": "L"},
+        "r_si": {"column": "M"},
+        "r_se": {"column": "M"},
+        "interior_insulation": {"column": "R"},
+        "sec_1_description": {"column": "L"},
+        "sec_1_conductivity": {"column": "M"},
+        "sec_2_description": {"column": "N"},
+        "sec_2_conductivity": {"column": "O"},
+        "sec_3_description": {"column": "P"},
+        "sec_3_conductivity": {"column": "Q"},
+        "thickness": {"column": "R"},
+        "u_val_supplement": {"column": "R"},
+        "sec_2_percentage": {"column": "O"},
+        "sec_3_percentage": {"column": "Q"},
+    },
+}
+
+
+@pytest.fixture
+def construction_detail_sheet(tmp_path):
+    """A single assembly block laid out exactly like the real "Externl wall"
+    block confirmed against Example_IP.xlsx: header at row 7 (offset 0),
+    display_name/id at row 8 (offset 1), rsi/rse dropdown cells at rows
+    10/11 (offsets 3/4), a 3-layer table at rows 13-15 (offsets 6-8, one
+    layer with a sec_2 sub-material, one trailing blank slot at offset 9
+    to confirm the table stops there), percentages at row 21 (offset 14),
+    and the R-value result at row 25 (offset 18).
+    """
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "R-Values"
+
+    ws["L7"], ws["Q7"] = HEADER, "Assembly no."
+    ws["L8"], ws["Q8"] = "Test Wall", "01ud"
+    ws["L10"], ws["M10"] = "Orientation of building assembly (or Rsi)", "2-Wall"
+    ws["L11"], ws["M11"] = "Adjacent to (or Rsa)", "1-Outdoor air"
+
+    ws["L13"], ws["M13"], ws["R13"] = "Gypsum", 0.9, 0.625
+    ws["L14"], ws["M14"], ws["R14"] = "Cellulose", 3.6, 3.5
+    ws["N14"], ws["O14"] = "2x4 @ 24\"", 1.3  # sec_2 sub-material on this layer only
+    ws["L15"], ws["M15"], ws["R15"] = "Sheathing", 1.4, 0.625
+    # row 16 (offset 9) intentionally blank -- the layer table must stop here,
+    # not continue reading through the remaining offset-10-through-13 slots.
+
+    ws["L21"], ws["O21"] = "Percentage of sec. 1:", 0.094
+
+    ws["Q25"], ws["R25"] = "R-value [...]:", 41.64
+
+    path = tmp_path / "construction_detail.xlsx"
+    wb.save(path)
+    wb_vals = openpyxl.load_workbook(path, data_only=True)
+    wb_fmls = openpyxl.load_workbook(path, data_only=False)
+    yield (wb_vals["R-Values"], wb_fmls["R-Values"])
+    wb_vals.close()
+    wb_fmls.close()
+
+
+def test_construction_detail_resolves_scalar_fields(construction_detail_sheet):
+    blocks = read_assembly_construction_detail(construction_detail_sheet, _CONSTRUCTOR_SEC_SPEC)
+    assert len(blocks) == 1
+    block = blocks[0]
+    assert block["display_name"] == "Test Wall"
+    assert block["id"] == "01ud"
+    assert block["r_si"] == "2-Wall"
+    assert block["r_se"] == "1-Outdoor air"
+    assert block["result_val"] == 41.64
+
+
+def test_construction_detail_resolves_layers_and_stops_at_first_blank(construction_detail_sheet):
+    blocks = read_assembly_construction_detail(construction_detail_sheet, _CONSTRUCTOR_SEC_SPEC)
+    layers = blocks[0]["layers"]
+    assert len(layers) == 3  # not 8 -- must stop at the first blank slot, not read the full window
+    assert layers[0]["sec_1_description"] == "Gypsum"
+    assert layers[0]["sec_1_conductivity"] == 0.9
+    assert layers[0]["thickness"] == 0.625
+    assert "sec_2_description" not in layers[0]
+
+
+def test_construction_detail_includes_sec_2_only_when_present(construction_detail_sheet):
+    blocks = read_assembly_construction_detail(construction_detail_sheet, _CONSTRUCTOR_SEC_SPEC)
+    layers = blocks[0]["layers"]
+    assert layers[1]["sec_1_description"] == "Cellulose"
+    assert layers[1]["sec_2_description"] == "2x4 @ 24\""
+    assert layers[1]["sec_2_conductivity"] == 1.3
+    assert "sec_3_description" not in layers[1]
+    # third layer (Sheathing) has neither sec_2 nor sec_3
+    assert "sec_2_description" not in layers[2]
+    assert "sec_3_description" not in layers[2]
+
+
+def test_construction_detail_post_layer_percentage(construction_detail_sheet):
+    blocks = read_assembly_construction_detail(construction_detail_sheet, _CONSTRUCTOR_SEC_SPEC)
+    assert blocks[0]["sec_2_percentage"] == 0.094
+    assert blocks[0]["sec_3_percentage"] is None
+
+
+def test_construction_detail_unset_scalars_are_none(construction_detail_sheet):
+    blocks = read_assembly_construction_detail(construction_detail_sheet, _CONSTRUCTOR_SEC_SPEC)
+    assert blocks[0]["interior_insulation"] is None
+    assert blocks[0]["u_val_supplement"] is None
+
+
+def test_construction_detail_skips_unused_slot(assembly_sheet):
+    """assembly_sheet's third block (row 49) has no display_name -- must
+    still be skipped here exactly like read_repeating_blocks, and the two
+    real blocks resolved even though this fixture has no layer/rsi/rse data
+    at all (every construction-detail field should just come back None)."""
+    blocks = read_assembly_construction_detail(assembly_sheet, _CONSTRUCTOR_SEC_SPEC)
+    assert len(blocks) == 2
+    assert blocks[0]["display_name"] == "Externl wall"
+    assert blocks[0]["layers"] == []
+    assert blocks[0]["r_si"] is None
