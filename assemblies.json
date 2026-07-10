@@ -1,0 +1,491 @@
+[
+  {
+    "_row": 8,
+    "display_name": "Externl wall",
+    "id": "01ud",
+    "r_si": "2-Wall",
+    "r_se": "1-Outdoor air",
+    "interior_insulation": null,
+    "u_val_supplement": null,
+    "result_val": 41.64030609362415,
+    "layers": [
+      {
+        "_row": 13,
+        "sec_1_description": "Gypsum",
+        "sec_1_conductivity": 0.9,
+        "thickness": 0.625
+      },
+      {
+        "_row": 14,
+        "sec_1_description": "Cellulose",
+        "sec_1_conductivity": 3.6,
+        "thickness": 3.5,
+        "sec_2_description": "2x4 @ 24\"",
+        "sec_2_conductivity": 1.3
+      },
+      {
+        "_row": 15,
+        "sec_1_description": "Cellulose",
+        "sec_1_conductivity": 3.6,
+        "thickness": 3
+      },
+      {
+        "_row": 16,
+        "sec_1_description": "Cellulose",
+        "sec_1_conductivity": 3.6,
+        "thickness": 5.5,
+        "sec_2_description": "2x6 @ 24\"",
+        "sec_2_conductivity": 1.3
+      },
+      {
+        "_row": 17,
+        "sec_1_description": "Sheathing",
+        "sec_1_conductivity": 1.4,
+        "thickness": 0.625
+      }
+    ],
+    "sec_2_percentage": 0.094,
+    "sec_3_percentage": null,
+    "areas": [
+      {
+        "_row": 44,
+        "description": "Wall_9351_E",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 1189.93750000001,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 89.9999999999997,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 45,
+        "description": "Wall_9544_W",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 1143.81249999999,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 270,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 46,
+        "description": "Wall_9368_N",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": null,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 0,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 47,
+        "description": "Wall_9493_N",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 547.8432623442,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 359.999999999998,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 48,
+        "description": "Wall_9360_N",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": null,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 0,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 51,
+        "description": "Wall_9432_S",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": null,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 180,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 52,
+        "description": "Wall_9384_S",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": null,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 180.000000000001,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 53,
+        "description": "Wall_9424_S",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": null,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 180.000000000001,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 54,
+        "description": "Wall_9400_S",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": null,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 180,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 55,
+        "description": "Wall_9416_S",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 162.398857412518,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 225,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 56,
+        "description": "Wall_9343_S",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 162.398857412518,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 135.000000000001,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 57,
+        "description": "Wall_9440_E",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 162.398857412521,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 134.999999999998,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 58,
+        "description": "Wall_9311_W",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 162.116997147532,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 225,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 59,
+        "description": "Wall_9376_N",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 138.828631372978,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 45,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 60,
+        "description": "Wall_9319_S",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 162.398857412513,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 225,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 61,
+        "description": "Wall_9392_E",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 162.398857412506,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 134.999999999999,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 62,
+        "description": "Wall_9408_S",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 162.398857412504,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 135.000000000001,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 63,
+        "description": "Wall_9335_W",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 162.3988574125,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 225,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 64,
+        "description": "Wall_9327_N",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 38.2426917491973,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 315.000000000003,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      },
+      {
+        "_row": 65,
+        "description": "Wall_9828_N",
+        "group_number": "8-External wall - ambient",
+        "quantity": 1,
+        "area": 0.000487655746640798,
+        "assembly_id": "01ud-Externl wall",
+        "orientation": 0,
+        "angle": 90,
+        "shading": 0.9,
+        "absorptivity": 0.6,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "01ud"
+      }
+    ],
+    "area_total": 4357.574072157234
+  },
+  {
+    "_row": 29,
+    "display_name": "Roof",
+    "id": "02ud",
+    "r_si": "1-Roof",
+    "r_se": "1-Outdoor air",
+    "interior_insulation": null,
+    "u_val_supplement": null,
+    "result_val": 110.49475855233152,
+    "layers": [
+      {
+        "_row": 34,
+        "sec_1_description": "Gypsum",
+        "sec_1_conductivity": 0.9,
+        "thickness": 0.625
+      },
+      {
+        "_row": 35,
+        "sec_1_description": "Cellulose",
+        "sec_1_conductivity": 3.6,
+        "thickness": 3.5,
+        "sec_2_description": "2x4 @ 24\"",
+        "sec_2_conductivity": 1.3
+      },
+      {
+        "_row": 36,
+        "sec_1_description": "Cellulose",
+        "sec_1_conductivity": 3.6,
+        "thickness": 13,
+        "sec_3_description": "2x4 web",
+        "sec_3_conductivity": 0.590909090909091
+      },
+      {
+        "_row": 37,
+        "sec_1_description": "Cellulose",
+        "sec_1_conductivity": 3.6,
+        "thickness": 3.5,
+        "sec_2_description": "2x4 @ 24\"",
+        "sec_2_conductivity": 1.3
+      },
+      {
+        "_row": 38,
+        "sec_1_description": "Polyiso",
+        "sec_1_conductivity": 6,
+        "thickness": 6.5
+      },
+      {
+        "_row": 39,
+        "sec_1_description": "OSB",
+        "sec_1_conductivity": 1.4,
+        "thickness": 0.625
+      }
+    ],
+    "sec_2_percentage": 0.069,
+    "sec_3_percentage": 0.005,
+    "areas": [
+      {
+        "_row": 42,
+        "description": "Roof_9448_H",
+        "group_number": "10-Roof / ceiling - ambient",
+        "quantity": 1,
+        "area": 4742.58958333335,
+        "assembly_id": "02ud-Roof",
+        "orientation": 0,
+        "angle": 22.6198649480404,
+        "shading": 1,
+        "absorptivity": 0.8,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "02ud"
+      },
+      {
+        "_row": 43,
+        "description": "Roof_9470_H",
+        "group_number": "10-Roof / ceiling - ambient",
+        "quantity": 1,
+        "area": 4658.45377340279,
+        "assembly_id": "02ud-Roof",
+        "orientation": 180,
+        "angle": 22.6198649480405,
+        "shading": 1,
+        "absorptivity": 0.8,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "02ud"
+      },
+      {
+        "_row": 49,
+        "description": "Roof_9514_W",
+        "group_number": "10-Roof / ceiling - ambient",
+        "quantity": 1,
+        "area": 227.284938527062,
+        "assembly_id": "02ud-Roof",
+        "orientation": 270,
+        "angle": 33.6900675259798,
+        "shading": 1,
+        "absorptivity": 0.8,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "02ud"
+      },
+      {
+        "_row": 50,
+        "description": "Roof_9521_E",
+        "group_number": "10-Roof / ceiling - ambient",
+        "quantity": 1,
+        "area": 227.284938527062,
+        "assembly_id": "02ud-Roof",
+        "orientation": 90,
+        "angle": 33.6900675259798,
+        "shading": 1,
+        "absorptivity": 0.8,
+        "emissivity": 0.9,
+        "resolved_assembly_id": "02ud"
+      }
+    ],
+    "area_total": 9855.613233790264
+  },
+  {
+    "_row": 50,
+    "display_name": "Basement ceiling",
+    "id": "03ud",
+    "r_si": "3-Floor",
+    "r_se": "2-Ground",
+    "interior_insulation": null,
+    "u_val_supplement": null,
+    "result_val": 58.84530490283202,
+    "layers": [
+      {
+        "_row": 55,
+        "sec_1_description": "XPS",
+        "sec_1_conductivity": 4.8,
+        "thickness": 12
+      },
+      {
+        "_row": 56,
+        "sec_1_description": "Concrete",
+        "sec_1_conductivity": 0.07,
+        "thickness": 4
+      }
+    ],
+    "sec_2_percentage": null,
+    "sec_3_percentage": null,
+    "areas": [
+      {
+        "_row": 41,
+        "description": "Floor_9183_D",
+        "group_number": "11-Floor slab / basement ceiling",
+        "quantity": 1,
+        "area": 9056.11117544875,
+        "assembly_id": "03ud-Basement ceiling",
+        "orientation": 270,
+        "angle": 180,
+        "shading": 0,
+        "absorptivity": 0,
+        "emissivity": 0,
+        "resolved_assembly_id": "03ud"
+      }
+    ],
+    "area_total": 9056.11117544875
+  }
+]
