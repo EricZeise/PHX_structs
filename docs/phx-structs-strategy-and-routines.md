@@ -100,3 +100,53 @@ Confirmed by reading every non-empty cell in both "Externl wall" (5 layers) and 
 - Real-workbook check against `Example_IP.xlsx`: assembly `01ud` ("Externl wall") should show 5 layers (`Gypsum`, `Cellulose`×3, `Sheathing`), `result_val` ≈ `41.64`; assembly `02ud` ("Roof") should show 6 layers (`Gypsum`, `Cellulose`×3, `Polyiso`, `OSB`), `result_val` ≈ `110.49` — both values already confirmed by direct inspection this session, so this is a strict regression check, not new exploration.
 - Repeat against `Example_SI.xlsx` with `EN_10_6_SI.md` once that field map's offsets are separately confirmed (see note above) — do not assume the IP correction transfers without checking.
 - Run the full `pytest tests/ -v` suite and the CLI end-to-end (`phpp-struct-ref build ...`) against all five sample workbooks already used for prior verification, confirming `unresolved` counts don't regress.
+
+## Listing assemblies with their referencing areas grouped together
+
+`build_crossref()` keeps `assemblies` and `areas` as two separate flat structures, cross-referenced only by `resolved_assembly_id` — reading "what does assembly `01ud` look like, and what surfaces use it?" out of that output means scanning `areas` by hand for every assembly you care about. `list_assemblies()` in `crossref.py` does that grouping once: for each assembly, it bundles the construction detail already resolved by `read_assembly_construction_detail()` (identity, R/U-value, full layer stack) together with every `AREAS.surface_rows` entry that references it, plus a summed `area_total`. Assemblies with no referencing surfaces are still included (empty `areas` list, `area_total: 0`) — an unused library slot is real information, not noise to hide.
+
+### CLI usage
+
+```bash
+# Human-readable summary table (identity, result_val, layer materials, area count/total)
+phpp-struct-ref assemblies Data/Example_IP.xlsx --phpp-version EN_10_6_IP
+```
+
+```
+3 assemblies identified:
+
+  01ud: 'Externl wall'
+      result_val=41.64030609362415
+      layers=[Gypsum + Cellulose + Cellulose + Cellulose + Sheathing]
+      used by 20 area(s), total area=4357.574072157234
+
+  02ud: 'Roof'
+      result_val=110.49475855233152
+      layers=[Gypsum + Cellulose + Cellulose + Cellulose + Polyiso + OSB]
+      used by 4 area(s), total area=9855.613233790264
+
+  03ud: 'Basement ceiling'
+      result_val=58.84530490283202
+      layers=[XPS + Concrete]
+      used by 1 area(s), total area=9056.11117544875
+```
+
+```bash
+# Full grouped JSON (one record per assembly, "areas" list nested inside each)
+phpp-struct-ref assemblies Data/Example_IP.xlsx --phpp-version EN_10_6_IP -o assemblies.json
+```
+
+Verified against `Example_IP.xlsx` (area totals above, matching the per-area sums confirmed during construction-detail verification) and `Example_SI.xlsx`. The SI example surfaced a real, if unrelated, data fact worth knowing: every `area_total` there comes back `0` — not a bug, `AREAS.surface_rows[].area` is genuinely `null` for all 6 surfaces in that particular demo workbook (a small hand-built example that never had its area formulas cached), confirmed by reading the raw `read_phpp()` output directly before trusting the summary.
+
+### Reusing `list_assemblies()` outside the CLI
+
+It's a pure function over `build_crossref()`'s output, so it composes directly:
+
+```python
+from phx_structs.crossref import build_crossref, list_assemblies
+
+field_map = "/Users/smini/Documents/Coding/PHX_pyxl/phpp-field-mapping/EN_10_6_IP.md"
+result = build_crossref("Data/Example_IP.xlsx", field_map)
+for assembly in list_assemblies(result):
+    print(assembly["id"], assembly["display_name"], assembly["area_total"])
+```
