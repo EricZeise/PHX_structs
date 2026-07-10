@@ -249,6 +249,38 @@ def list_assemblies(crossref: dict[str, Any]) -> list[dict[str, Any]]:
     return result
 
 
+def list_windows(crossref: dict[str, Any]) -> list[dict[str, Any]]:
+    """Group every data field associated with each window into one record per window.
+
+    The inverse shape of list_assemblies(): a window *references* a frame and
+    a glazing (it doesn't have children referencing it the way an assembly
+    has areas), so grouping here means inlining each window's resolved
+    frame/glazing component records directly into its own entry, instead of
+    leaving them as bare resolved_frame_id/resolved_glazing_id strings that
+    require a separate lookup into `components`.
+
+    A window whose frame_id/glazing_id didn't resolve (see build_crossref()'s
+    "unresolved" tracking) gets `None` for that key rather than a missing key
+    or a crash -- consistent with list_assemblies() not hiding gaps.
+
+    Ordering follows dict insertion order, i.e. the order window rows were
+    read off the Windows sheet (top to bottom), not sorted by any field.
+    """
+    frames_by_id = crossref.get("components", {}).get("frames", {})
+    glazings_by_id = crossref.get("components", {}).get("glazings", {})
+    windows = crossref.get("windows", [])
+
+    result: list[dict[str, Any]] = []
+    for window in windows:
+        record = dict(window)
+        frame_id = window.get("resolved_frame_id")
+        glazing_id = window.get("resolved_glazing_id")
+        record["frame"] = frames_by_id.get(frame_id) if frame_id else None
+        record["glazing"] = glazings_by_id.get(glazing_id) if glazing_id else None
+        result.append(record)
+    return result
+
+
 def build_crossref(workbook_path: str, field_map_path: str) -> dict[str, Any]:
     """Read *workbook_path* and return the joined Components/Windows/Areas/HVAC structure."""
     data = read_phpp(workbook_path, field_map_path, skip_formulas=False)

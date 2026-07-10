@@ -4,6 +4,7 @@ from phx_structs.crossref import (
     _index_by_id,
     _split_ref,
     list_assemblies,
+    list_windows,
     resolve_ordinal,
     resolve_reference,
 )
@@ -235,3 +236,52 @@ def test_list_assemblies_preserves_original_assembly_fields():
 def test_list_assemblies_empty_when_no_assemblies():
     assert list_assemblies({"assemblies": {}, "areas": []}) == []
     assert list_assemblies({}) == []
+
+
+# --- list_windows: inline each window's resolved frame/glazing components ---
+
+def _sample_windows_crossref():
+    return {
+        "components": {
+            "frames": {"02ud": {"id": "02ud", "display_name": "Window Operable"}},
+            "glazings": {"01ud": {"id": "01ud", "display_name": "Climatop Ultra N"}},
+        },
+        "windows": [
+            {
+                "_row": 24, "description": "W104", "host": "4-Wall_9351_E",
+                "glazing_id": "01ud-Climatop Ultra N", "frame_id": "02ud-Window Operable",
+                "resolved_glazing_id": "01ud", "resolved_frame_id": "02ud", "u_w": 0.1347,
+            },
+            {
+                "_row": 30, "description": "W999", "host": "5-Wall_9999_W",
+                "glazing_id": "99zz-Unknown Glazing", "frame_id": "02ud-Window Operable",
+                "resolved_frame_id": "02ud", "u_w": 0.2,
+                # no resolved_glazing_id -- didn't resolve
+            },
+        ],
+    }
+
+
+def test_list_windows_inlines_resolved_frame_and_glazing():
+    grouped = list_windows(_sample_windows_crossref())
+    w = grouped[0]
+    assert w["frame"] == {"id": "02ud", "display_name": "Window Operable"}
+    assert w["glazing"] == {"id": "01ud", "display_name": "Climatop Ultra N"}
+
+
+def test_list_windows_preserves_original_window_fields():
+    grouped = list_windows(_sample_windows_crossref())
+    assert grouped[0]["description"] == "W104"
+    assert grouped[0]["u_w"] == 0.1347
+
+
+def test_list_windows_unresolved_glazing_is_none_not_missing():
+    grouped = list_windows(_sample_windows_crossref())
+    w = grouped[1]
+    assert w["glazing"] is None
+    assert w["frame"] == {"id": "02ud", "display_name": "Window Operable"}
+
+
+def test_list_windows_empty_when_no_windows():
+    assert list_windows({"components": {"frames": {}, "glazings": {}}, "windows": []}) == []
+    assert list_windows({}) == []

@@ -2,6 +2,7 @@
 
     phpp-struct-ref build <filled.xlsx> -o crossref.json --phpp-version EN_10_6_IP
     phpp-struct-ref assemblies <filled.xlsx> --phpp-version EN_10_6_IP
+    phpp-struct-ref windows <filled.xlsx> --phpp-version EN_10_6_IP
 
 --phpp-version resolves against PHX_pyxl's own phpp-field-mapping/<version>.md
 (the sibling repo's field maps are reused as-is, never copied) -- e.g.
@@ -15,7 +16,7 @@ from pathlib import Path
 
 import click
 
-from phx_structs.crossref import build_crossref, list_assemblies
+from phx_structs.crossref import build_crossref, list_assemblies, list_windows
 from phx_structs.sibling_import import PHX_PYXL_SRC
 
 FIELD_MAP_DIR = PHX_PYXL_SRC.parent / "phpp-field-mapping"
@@ -100,6 +101,40 @@ def assemblies(workbook: str, output: str | None, phpp_version: str, field_map: 
             f"      result_val={assembly.get('result_val')!r}\n"
             f"      layers=[{layer_desc}]\n"
             f"      used by {n_areas} area(s), total area={assembly['area_total']!r}\n"
+        )
+
+
+@main.command()
+@click.argument("workbook", type=click.Path(exists=True, dir_okay=False))
+@click.option("-o", "--output", type=click.Path(dir_okay=False),
+              help="Output JSON file path. Without it, prints a summary table instead.")
+@click.option("--phpp-version", default=DEFAULT_PHPP_VERSION, show_default=True,
+              help=f"PHPP version/variant, resolved to {FIELD_MAP_DIR}/<version>.md.")
+@click.option("--field-map", type=click.Path(exists=True, dir_okay=False), default=None,
+              help="Path to a specific field map file, overriding --phpp-version.")
+def windows(workbook: str, output: str | None, phpp_version: str, field_map: str | None) -> None:
+    """List every window with its resolved frame and glazing components inlined."""
+    resolved_map = _resolve_field_map(phpp_version, field_map)
+    result = build_crossref(workbook, resolved_map)
+    grouped = list_windows(result)
+
+    if output:
+        Path(output).parent.mkdir(parents=True, exist_ok=True)
+        Path(output).write_text(json.dumps(grouped, indent=2, default=str), encoding="utf-8")
+        click.echo(f"Written to {output}")
+        click.echo(f"{len(grouped)} windows.")
+        return
+
+    click.echo(f"{len(grouped)} window{'' if len(grouped) == 1 else 's'} identified:\n")
+    for window in grouped:
+        # COMPONENTS.frames/glazings name this field "description", not
+        # "display_name" (unlike assemblies, which do use "display_name").
+        frame = window.get("frame") or {}
+        glazing = window.get("glazing") or {}
+        click.echo(
+            f"  row {window.get('_row')}: {window.get('description')!r} (host: {window.get('host')!r})\n"
+            f"      frame={frame.get('description')!r}  glazing={glazing.get('description')!r}\n"
+            f"      u_w={window.get('u_w')!r}  window_area={window.get('window_area')!r}\n"
         )
 
 

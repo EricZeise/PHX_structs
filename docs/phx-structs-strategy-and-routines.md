@@ -146,7 +146,48 @@ It's a pure function over `build_crossref()`'s output, so it composes directly:
 from phx_structs.crossref import build_crossref, list_assemblies
 
 field_map = "/Users/smini/Documents/Coding/PHX_pyxl/phpp-field-mapping/EN_10_6_IP.md"
-result = build_crossref("Data/Example_IP.xlsx", field_map)
-for assembly in list_assemblies(result):
+crossref = build_crossref("Data/Example_IP.xlsx", field_map)
+for assembly in list_assemblies(crossref):
     print(assembly["id"], assembly["display_name"], assembly["area_total"])
+```
+
+## Listing windows with their resolved frame/glazing inlined
+
+The inverse shape of `list_assemblies()`: a window *references* a frame and a glazing rather than being referenced by anything, so there's nothing to collect into a child list. `list_windows()` instead inlines each window's already-resolved `resolved_frame_id`/`resolved_glazing_id` into the full `COMPONENTS.frames`/`glazings` records they point to (`frame`/`glazing` keys), so a caller gets one self-contained record per window instead of having to look the ids up in `components` separately. A window whose frame or glazing didn't resolve gets `None` for that key, not a missing key or a crash.
+
+One naming gotcha caught while wiring up the CLI's summary table: `COMPONENTS.frames`/`glazings` name their identity field `description`, not `display_name` (unlike assemblies, which do use `display_name`) — the first version of the `windows` command printed `frame=None glazing=None` for every window because it read the wrong key, even though `list_windows()` itself had already resolved and inlined the records correctly. Caught by actually running it against `Example_IP.xlsx` rather than trusting it from writing the code.
+
+### CLI usage
+
+```bash
+phpp-struct-ref windows Data/Example_IP.xlsx --phpp-version EN_10_6_IP
+```
+
+```
+64 windows identified:
+
+  row 24: 'W104' (host: '4-Wall_9351_E')
+      frame='Window Operable'  glazing='Climatop Ultra N'
+      u_w=0.13469860894325011  window_area=14.566929133858258
+  ...
+```
+
+```bash
+# Full grouped JSON (one record per window, "frame"/"glazing" nested inside each)
+phpp-struct-ref windows Data/Example_IP.xlsx --phpp-version EN_10_6_IP -o windows.json
+```
+
+Verified against both `Example_IP.xlsx` (64 windows, all resolving) and `Example_SI.xlsx` (6 windows, e.g. `frame='Wooden frame + PU casing'`, `glazing='Triple-low-e Kr08'`).
+
+### Reusing `list_windows()` outside the CLI
+
+```python
+from phx_structs.crossref import build_crossref, list_windows
+
+field_map = "/Users/smini/Documents/Coding/PHX_pyxl/phpp-field-mapping/EN_10_6_IP.md"
+crossref = build_crossref("Data/Example_IP.xlsx", field_map)
+for window in list_windows(crossref):
+    frame = window["frame"] or {}
+    glazing = window["glazing"] or {}
+    print(window["description"], frame.get("description"), glazing.get("description"))
 ```
