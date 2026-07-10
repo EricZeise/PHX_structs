@@ -212,6 +212,43 @@ def _build_thermal_bridges(data: dict[str, Any]) -> list[dict[str, Any]]:
     return out
 
 
+def list_assemblies(crossref: dict[str, Any]) -> list[dict[str, Any]]:
+    """Group every data field associated with each assembly into one record per assembly.
+
+    Takes build_crossref()'s output and, for each resolved assembly, bundles
+    its own construction-detail fields (identity, R/U-value, layers -- already
+    present in `assemblies`, see blocks.read_assembly_construction_detail)
+    together with every AREAS.surface_rows entry that references it (via
+    resolved_assembly_id). This is the "list assemblies and group their
+    associated data" view -- build_crossref() itself keeps assemblies and
+    areas as separate flat structures, cross-referenced only by id.
+
+    Assemblies with no referencing surface rows are still included, with an
+    empty "areas" list and area_total 0.0 -- an unused library entry is real
+    information (e.g. a template slot nobody assigned), not something to hide.
+
+    Ordering follows dict insertion order, i.e. the order assemblies were
+    found on the R-Values sheet (top to bottom), not alphabetical by id.
+    """
+    assemblies = crossref.get("assemblies", {})
+    areas = crossref.get("areas", [])
+
+    areas_by_assembly: dict[str, list[dict[str, Any]]] = {aid: [] for aid in assemblies}
+    for area in areas:
+        aid = area.get("resolved_assembly_id")
+        if aid in areas_by_assembly:
+            areas_by_assembly[aid].append(area)
+
+    result: list[dict[str, Any]] = []
+    for aid, assembly in assemblies.items():
+        used_by = areas_by_assembly[aid]
+        record = dict(assembly)
+        record["areas"] = used_by
+        record["area_total"] = sum(a.get("area") or 0 for a in used_by)
+        result.append(record)
+    return result
+
+
 def build_crossref(workbook_path: str, field_map_path: str) -> dict[str, Any]:
     """Read *workbook_path* and return the joined Components/Windows/Areas/HVAC structure."""
     data = read_phpp(workbook_path, field_map_path, skip_formulas=False)

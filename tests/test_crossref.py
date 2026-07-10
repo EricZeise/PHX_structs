@@ -3,6 +3,7 @@ from phx_structs.crossref import (
     _build_thermal_bridges,
     _index_by_id,
     _split_ref,
+    list_assemblies,
     resolve_ordinal,
     resolve_reference,
 )
@@ -185,3 +186,52 @@ def test_build_thermal_bridges_handles_missing_group_number():
 def test_build_thermal_bridges_empty_when_no_rows():
     assert _build_thermal_bridges({"AREAS": {}}) == []
     assert _build_thermal_bridges({}) == []
+
+
+# --- list_assemblies: group construction detail + referencing areas ---
+
+def _sample_crossref():
+    return {
+        "assemblies": {
+            "01ud": {"id": "01ud", "display_name": "Externl wall", "result_val": 41.64, "layers": []},
+            "02ud": {"id": "02ud", "display_name": "Roof", "result_val": 110.49, "layers": []},
+            "03ud": {"id": "03ud", "display_name": "Unused Slot", "result_val": 12.0, "layers": []},
+        },
+        "areas": [
+            {"_row": 41, "description": "Floor_A", "area": 100.0, "resolved_assembly_id": "01ud"},
+            {"_row": 42, "description": "Floor_B", "area": 50.0, "resolved_assembly_id": "01ud"},
+            {"_row": 43, "description": "Roof_A", "area": 200.0, "resolved_assembly_id": "02ud"},
+            {"_row": 44, "description": "Unresolved_area", "area": 10.0},  # no resolved_assembly_id at all
+        ],
+    }
+
+
+def test_list_assemblies_returns_one_record_per_assembly():
+    grouped = list_assemblies(_sample_crossref())
+    assert [a["id"] for a in grouped] == ["01ud", "02ud", "03ud"]
+
+
+def test_list_assemblies_groups_referencing_areas():
+    grouped = list_assemblies(_sample_crossref())
+    wall = next(a for a in grouped if a["id"] == "01ud")
+    assert [area["description"] for area in wall["areas"]] == ["Floor_A", "Floor_B"]
+    assert wall["area_total"] == 150.0
+
+
+def test_list_assemblies_includes_unused_assembly_with_empty_areas():
+    grouped = list_assemblies(_sample_crossref())
+    unused = next(a for a in grouped if a["id"] == "03ud")
+    assert unused["areas"] == []
+    assert unused["area_total"] == 0
+
+
+def test_list_assemblies_preserves_original_assembly_fields():
+    grouped = list_assemblies(_sample_crossref())
+    wall = next(a for a in grouped if a["id"] == "01ud")
+    assert wall["display_name"] == "Externl wall"
+    assert wall["result_val"] == 41.64
+
+
+def test_list_assemblies_empty_when_no_assemblies():
+    assert list_assemblies({"assemblies": {}, "areas": []}) == []
+    assert list_assemblies({}) == []

@@ -83,6 +83,10 @@ pytest tests/ -v
 
 # Build a cross-reference file from a real, populated PHPP workbook
 phpp-struct-ref build Data/Example_IP.xlsx --phpp-version EN_10_6_IP -o crossref.json
+
+# List assemblies with construction detail + referencing areas grouped together
+# (prints a summary table; add -o to write the full grouped JSON instead)
+phpp-struct-ref assemblies Data/Example_IP.xlsx --phpp-version EN_10_6_IP
 ```
 
 ---
