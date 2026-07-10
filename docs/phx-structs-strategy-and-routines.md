@@ -133,6 +133,7 @@ phpp-struct-ref assemblies Data/Example_IP.xlsx --phpp-version EN_10_6_IP
 
 ```bash
 # Full grouped JSON (one record per assembly, "areas" list nested inside each)
+# -- a bare filename like this lands in output/assemblies.json (gitignored)
 phpp-struct-ref assemblies Data/Example_IP.xlsx --phpp-version EN_10_6_IP -o assemblies.json
 ```
 
@@ -174,6 +175,7 @@ phpp-struct-ref windows Data/Example_IP.xlsx --phpp-version EN_10_6_IP
 
 ```bash
 # Full grouped JSON (one record per window, "frame"/"glazing" nested inside each)
+# -- a bare filename like this lands in output/windows.json (gitignored)
 phpp-struct-ref windows Data/Example_IP.xlsx --phpp-version EN_10_6_IP -o windows.json
 ```
 

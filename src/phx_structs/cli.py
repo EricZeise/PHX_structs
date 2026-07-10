@@ -21,6 +21,7 @@ from phx_structs.sibling_import import PHX_PYXL_SRC
 
 FIELD_MAP_DIR = PHX_PYXL_SRC.parent / "phpp-field-mapping"
 DEFAULT_PHPP_VERSION = "EN_10_6_IP"
+OUTPUT_DIR = Path(__file__).resolve().parent.parent.parent / "output"
 
 
 def _resolve_field_map(phpp_version: str, field_map: str | None) -> str:
@@ -34,6 +35,18 @@ def _resolve_field_map(phpp_version: str, field_map: str | None) -> str:
     return str(path)
 
 
+def _resolve_output_path(output: str) -> Path:
+    """A bare filename (no directory component) lands in OUTPUT_DIR, matching
+    phpp-shape-sync's convention of always writing generated output to its
+    own output/ directory rather than scattering it around the repo root.
+    An explicit path (e.g. "subdir/x.json" or "/tmp/x.json") is respected
+    as given -- this only supplies a default location, it doesn't override
+    a location the caller actually specified.
+    """
+    path = Path(output)
+    return OUTPUT_DIR / path if path.parent == Path(".") else path
+
+
 @click.group()
 @click.version_option(package_name="phx-structs")
 def main() -> None:
@@ -43,7 +56,7 @@ def main() -> None:
 @main.command()
 @click.argument("workbook", type=click.Path(exists=True, dir_okay=False))
 @click.option("-o", "--output", type=click.Path(dir_okay=False),
-              help="Output JSON file path.")
+              help="Output JSON file path. A bare filename (no directory) lands in output/.")
 @click.option("--phpp-version", default=DEFAULT_PHPP_VERSION, show_default=True,
               help=f"PHPP version/variant, resolved to {FIELD_MAP_DIR}/<version>.md.")
 @click.option("--field-map", type=click.Path(exists=True, dir_okay=False), default=None,
@@ -55,10 +68,11 @@ def build(workbook: str, output: str | None, phpp_version: str, field_map: str |
     json_str = json.dumps(result, indent=2, default=str)
 
     if output:
-        Path(output).parent.mkdir(parents=True, exist_ok=True)
-        Path(output).write_text(json_str, encoding="utf-8")
+        out_path = _resolve_output_path(output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json_str, encoding="utf-8")
         n_unresolved = sum(len(v) for v in result["unresolved"].values())
-        click.echo(f"Written to {output}")
+        click.echo(f"Written to {out_path}")
         click.echo(
             f"{len(result['windows'])} windows, {len(result['areas'])} areas, "
             f"{len(result['assemblies'])} assemblies, "
@@ -74,7 +88,7 @@ def build(workbook: str, output: str | None, phpp_version: str, field_map: str |
 @main.command()
 @click.argument("workbook", type=click.Path(exists=True, dir_okay=False))
 @click.option("-o", "--output", type=click.Path(dir_okay=False),
-              help="Output JSON file path. Without it, prints a summary table instead.")
+              help="Output JSON file path (a bare filename lands in output/). Without it, prints a summary table instead.")
 @click.option("--phpp-version", default=DEFAULT_PHPP_VERSION, show_default=True,
               help=f"PHPP version/variant, resolved to {FIELD_MAP_DIR}/<version>.md.")
 @click.option("--field-map", type=click.Path(exists=True, dir_okay=False), default=None,
@@ -86,9 +100,10 @@ def assemblies(workbook: str, output: str | None, phpp_version: str, field_map: 
     grouped = list_assemblies(result)
 
     if output:
-        Path(output).parent.mkdir(parents=True, exist_ok=True)
-        Path(output).write_text(json.dumps(grouped, indent=2, default=str), encoding="utf-8")
-        click.echo(f"Written to {output}")
+        out_path = _resolve_output_path(output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(grouped, indent=2, default=str), encoding="utf-8")
+        click.echo(f"Written to {out_path}")
         click.echo(f"{len(grouped)} assemblies.")
         return
 
@@ -107,7 +122,7 @@ def assemblies(workbook: str, output: str | None, phpp_version: str, field_map: 
 @main.command()
 @click.argument("workbook", type=click.Path(exists=True, dir_okay=False))
 @click.option("-o", "--output", type=click.Path(dir_okay=False),
-              help="Output JSON file path. Without it, prints a summary table instead.")
+              help="Output JSON file path (a bare filename lands in output/). Without it, prints a summary table instead.")
 @click.option("--phpp-version", default=DEFAULT_PHPP_VERSION, show_default=True,
               help=f"PHPP version/variant, resolved to {FIELD_MAP_DIR}/<version>.md.")
 @click.option("--field-map", type=click.Path(exists=True, dir_okay=False), default=None,
@@ -119,9 +134,10 @@ def windows(workbook: str, output: str | None, phpp_version: str, field_map: str
     grouped = list_windows(result)
 
     if output:
-        Path(output).parent.mkdir(parents=True, exist_ok=True)
-        Path(output).write_text(json.dumps(grouped, indent=2, default=str), encoding="utf-8")
-        click.echo(f"Written to {output}")
+        out_path = _resolve_output_path(output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(grouped, indent=2, default=str), encoding="utf-8")
+        click.echo(f"Written to {out_path}")
         click.echo(f"{len(grouped)} windows.")
         return
 

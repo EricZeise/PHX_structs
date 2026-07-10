@@ -66,8 +66,9 @@ PHX_structs/
 ├── tests/
 │   ├── test_blocks.py
 │   └── test_crossref.py
-└── docs/
-    └── phx-structs-strategy-and-routines.md
+├── docs/
+│   └── phx-structs-strategy-and-routines.md
+└── output/                      ← generated JSON lands here (gitignored, see Constraints)
 ```
 
 ---
@@ -82,10 +83,11 @@ pip install -e ".[dev]"
 pytest tests/ -v
 
 # Build a cross-reference file from a real, populated PHPP workbook
+# (a bare filename like this lands in output/ -- see Constraints)
 phpp-struct-ref build Data/Example_IP.xlsx --phpp-version EN_10_6_IP -o crossref.json
 
 # List assemblies with construction detail + referencing areas grouped together
-# (prints a summary table; add -o to write the full grouped JSON instead)
+# (prints a summary table; add -o to write the full grouped JSON to output/ instead)
 phpp-struct-ref assemblies Data/Example_IP.xlsx --phpp-version EN_10_6_IP
 
 # List windows with their resolved frame/glazing components inlined
@@ -103,3 +105,4 @@ phpp-struct-ref windows Data/Example_IP.xlsx --phpp-version EN_10_6_IP
 - **Don't invent cross-references the data doesn't have** — `AREAS.thermal_bridge_rows` has no id-style link to any other worksheet; resist the temptation to force a join against `surface_rows.group_number` just because both fields share the same `"<code>-<label>"` text shape. Confirmed the two use disjoint code families in a real workbook — parse and group by category, don't resolve as a reference.
 - **Two distinct resolution primitives, don't conflate them** — `resolve_reference()` (id-string split) and `resolve_ordinal()` (1-based sibling-list position) solve different problems; `ADDNL_VENT` needs both in the same worksheet (`units[].unit_selected` is id-string, `rooms[].vent_unit_assigned`/`ducts[].duct_assign_N` are ordinal). HP/Boiler worksheets are genuinely empty stubs in the field map — nothing to associate there yet.
 - **A declared offset being "wrong" doesn't mean guess a replacement — verify against a real, populated workbook first**, and check whether the error is systematic (as `UVALUES.constructor`'s uniform off-by-one turned out to be) before writing per-field special cases. `interior_insulation`/`u_val_supplement`'s row position in `read_assembly_construction_detail()` is still an unconfirmed positional hypothesis (no sample assembly had them set) — don't treat it as verified fact if it ever needs to be trusted for something load-bearing.
+- **Generated JSON output is never committed** — `output/` is gitignored (except a `.gitkeep` placeholder), matching `phpp-shape-sync`'s own `output/`/`cache/` convention. A bare filename passed to any command's `-o` (e.g. `-o assemblies.json`) lands in `output/` automatically (`cli.py`'s `_resolve_output_path()`); an explicit path with a directory component is respected as given. Example runs earlier landed at the repo root and got committed by mistake — removed, not to be repeated.
